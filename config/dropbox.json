@@ -1,0 +1,82 @@
+{
+  "_comment": "Configuration for Dropbox integration",
+  "api": {
+    "anthropic_api_key": "${ANTHROPIC_API_KEY}",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 12,
+    "max_tokens": 2500
+  },
+  "source": {
+    "type": "dropbox"
+  },
+  "dropbox": {
+    "app_key": "${DROPBOX_APP_KEY}",
+    "app_secret": "${DROPBOX_APP_SECRET}",
+    "access_token": "${DROPBOX_ACCESS_TOKEN}",
+    "refresh_token": "${DROPBOX_REFRESH_TOKEN}",
+    "source_folder": "/Camera Uploads",
+    "download_batch_size": 10
+  },
+  "processing": {
+    "batch_size": 10,
+    "file_types": [
+      ".jpg", ".jpeg", ".png", ".heic", ".raw",
+      ".mp4", ".mov", ".avi",
+      ".pdf", ".docx", ".xlsx"
+    ],
+    "max_file_size": 104857600,
+    "enable_ocr": true
+  },
+  "organization": {
+    "mode": "move",
+    "base_directory": "/Organized",
+    "conflict_resolution": "rename",
+    "rules": [
+      {
+        "name": "Photos by year and month",
+        "priority": 1,
+        "conditions": {
+          "document_type": {"$in": ["photo", "image"]},
+          "dates.taken_date": {"$exists": true}
+        },
+        "path_template": "Photos/{dates.taken_date|%Y}/{dates.taken_date|%m-%B}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Videos by year",
+        "priority": 2,
+        "conditions": {
+          "document_type": "video"
+        },
+        "path_template": "Videos/{dates.taken_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Documents by type",
+        "priority": 3,
+        "conditions": {
+          "document_type": {"$in": ["document", "pdf", "spreadsheet"]}
+        },
+        "path_template": "Documents/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "WhatsApp media",
+        "priority": 4,
+        "conditions": {
+          "source_app": "whatsapp"
+        },
+        "path_template": "WhatsApp/{document_type}/{dates.created_date|%Y-%m}/{filename}",
+        "enabled": true
+      }
+    ]
+  },
+  "metadata": {
+    "storage_backend": "sqlite",
+    "db_path": "/Organized/.metadata/dropbox.db"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "/Organized/.logs/dropbox_organizer.log"
+  }
+}

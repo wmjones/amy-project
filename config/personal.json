@@ -1,0 +1,122 @@
+{
+  "_comment": "Configuration for personal document and photo organization",
+  "api": {
+    "anthropic_api_key": "${ANTHROPIC_API_KEY}",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 10,
+    "max_tokens": 2000
+  },
+  "source": {
+    "type": "local",
+    "directory": "~/Downloads"
+  },
+  "processing": {
+    "batch_size": 15,
+    "file_types": [
+      ".jpg", ".jpeg", ".png", ".gif", ".mp4", ".mov",
+      ".pdf", ".docx", ".txt", ".epub", ".mobi"
+    ],
+    "enable_ocr": true,
+    "ocr_languages": ["eng", "spa", "fra"]
+  },
+  "organization": {
+    "mode": "move",
+    "base_directory": "~/Documents/Organized",
+    "use_default_rules": false,
+    "rules": [
+      {
+        "name": "Personal photos by date",
+        "priority": 1,
+        "conditions": {
+          "document_type": {"$in": ["photo", "image"]},
+          "dates.taken_date": {"$exists": true}
+        },
+        "path_template": "Photos/{dates.taken_date|%Y}/{dates.taken_date|%m-%B}/{dates.taken_date|%d}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Screenshots",
+        "priority": 2,
+        "conditions": {
+          "document_type": "screenshot"
+        },
+        "path_template": "Screenshots/{dates.created_date|%Y-%m}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Tax documents",
+        "priority": 3,
+        "conditions": {
+          "tags": {"$contains": "tax"},
+          "categories": {"$contains": "financial"}
+        },
+        "path_template": "Financial/Taxes/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Medical records",
+        "priority": 4,
+        "conditions": {
+          "categories": {"$contains": "medical"}
+        },
+        "path_template": "Medical/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Receipts by store",
+        "priority": 5,
+        "conditions": {
+          "document_type": "receipt",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Financial/Receipts/{entities.organizations[0]}/{dates.document_date|%Y-%m}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Bank statements",
+        "priority": 6,
+        "conditions": {
+          "document_type": "bank_statement"
+        },
+        "path_template": "Financial/Bank/{entities.organizations[0]}/{dates.document_date|%Y}/{dates.document_date|%m}-{dates.document_date|%B}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Travel documents",
+        "priority": 7,
+        "conditions": {
+          "categories": {"$contains": "travel"}
+        },
+        "path_template": "Travel/{dates.document_date|%Y}/{metadata.destination}/{document_type}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Books and publications",
+        "priority": 8,
+        "conditions": {
+          "document_type": {"$in": ["book", "ebook", "publication"]}
+        },
+        "path_template": "Books/{metadata.author}/{metadata.title}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "General documents by type",
+        "priority": 100,
+        "conditions": {
+          "document_type": {"$exists": true}
+        },
+        "path_template": "Documents/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      }
+    ],
+    "default_folder": "Unsorted"
+  },
+  "metadata": {
+    "storage_backend": "json",
+    "json_path": "~/Documents/Organized/.metadata/metadata.json"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "~/Documents/Organized/.logs/organizer.log"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "_comment": "Configuration optimized for OCR-heavy processing of scanned documents",
+  "api": {
+    "anthropic_api_key": "${ANTHROPIC_API_KEY}",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 8,
+    "max_tokens": 4000,
+    "timeout": 120
+  },
+  "source": {
+    "type": "local",
+    "directory": "./scanned_documents"
+  },
+  "processing": {
+    "batch_size": 5,
+    "max_workers": 3,
+    "file_types": [
+      ".jpg", ".jpeg", ".png", ".tiff", ".bmp",
+      ".pdf"
+    ],
+    "max_file_size": 209715200,
+    "enable_ocr": true,
+    "ocr_languages": ["eng", "fra", "deu", "spa", "ita"],
+    "ocr_settings": {
+      "dpi": 300,
+      "psm": 3,
+      "oem": 3,
+      "preprocess": true,
+      "denoise": true,
+      "deskew": true
+    }
+  },
+  "organization": {
+    "mode": "copy",
+    "base_directory": "./processed_documents",
+    "preserve_originals": true,
+    "create_text_copies": true,
+    "rules": [
+      {
+        "name": "Historical documents by decade",
+        "priority": 1,
+        "conditions": {
+          "categories": {"$contains": "historical"},
+          "dates.document_date": {"$exists": true}
+        },
+        "path_template": "Historical/{dates.document_date|%Y decade}/{document_type}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Legal documents",
+        "priority": 2,
+        "conditions": {
+          "categories": {"$contains": "legal"}
+        },
+        "path_template": "Legal/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Academic papers",
+        "priority": 3,
+        "conditions": {
+          "document_type": {"$in": ["research_paper", "thesis", "dissertation"]}
+        },
+        "path_template": "Academic/{metadata.subject}/{metadata.author}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Newspapers and periodicals",
+        "priority": 4,
+        "conditions": {
+          "document_type": {"$in": ["newspaper", "magazine", "periodical"]}
+        },
+        "path_template": "Publications/{metadata.publication_name}/{dates.document_date|%Y}/{dates.document_date|%m-%d}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Letters and correspondence",
+        "priority": 5,
+        "conditions": {
+          "document_type": {"$in": ["letter", "correspondence"]}
+        },
+        "path_template": "Correspondence/{entities.people[0]}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Handwritten documents",
+        "priority": 6,
+        "conditions": {
+          "metadata.handwritten": true
+        },
+        "path_template": "Handwritten/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Poor quality scans",
+        "priority": 100,
+        "conditions": {
+          "confidence_score": {"$lt": 0.7}
+        },
+        "path_template": "Needs_Review/{document_type}/{filename}",
+        "enabled": true
+      }
+    ],
+    "default_folder": "Unprocessed"
+  },
+  "metadata": {
+    "storage_backend": "sqlite",
+    "db_path": "./processed_documents/.metadata/scanned.db",
+    "index_fields": [
+      "document_type",
+      "dates.document_date",
+      "ocr_confidence",
+      "metadata.handwritten",
+      "metadata.language"
+    ]
+  },
+  "post_processing": {
+    "generate_searchable_pdf": true,
+    "extract_text_files": true,
+    "create_thumbnails": true,
+    "compress_images": false
+  },
+  "logging": {
+    "level": "DEBUG",
+    "file": "./logs/ocr_processing.log",
+    "ocr_debug": true
+  }
+}

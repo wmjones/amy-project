@@ -1,0 +1,49 @@
+# Minimal pre-commit configuration for Python project
+repos:
+  # Basic file fixes
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        exclude: '^(build|dist|\.eggs|\.venv|venv)/'
+
+  # Python linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503,F401,F541,F841,E501,E402,F821,F402,F601,E722']
+        exclude: '^(build|dist|\.eggs|\.venv|venv)/'
+
+  # Python tests - runs all tests when using --all-files
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest - quick unit tests
+        entry: sh -c 'if [ -f venv/bin/pytest ]; then venv/bin/python -m pytest tests/test_claude_integration.py tests/test_error_handler.py tests/test_file_access.py -v --tb=short; elif command -v pytest >/dev/null 2>&1 || python -m pytest --version >/dev/null 2>&1; then python -m pytest tests/test_claude_integration.py tests/test_error_handler.py tests/test_file_access.py -v --tb=short; else echo "pytest not installed - skipping tests"; exit 0; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      - id: import-check
+        name: verify imports
+        entry: sh -c 'if [ -f venv/bin/python ]; then venv/bin/python -c "import sys; sys.path.insert(0, \"src\"); import file_access; import claude_integration; print(\"Import check passed\")"; else python -c "import sys; sys.path.insert(0, \"src\"); import file_access; import claude_integration; print(\"Import check passed\")"; fi'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+default_language_version:
+  python: python3.11

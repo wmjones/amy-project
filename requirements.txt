@@ -1,0 +1,35 @@
+# Core dependencies
+anthropic>=0.28.0
+python-dotenv>=1.0.0
+dropbox>=11.36.2
+
+# File processing
+pillow>=10.2.0
+PyPDF2>=3.0.1
+python-docx>=1.1.0
+python-magic>=0.4.27
+pdf2image>=1.16.3
+pytesseract>=0.3.10
+opencv-python>=4.9.0
+chardet>=5.2.0
+
+# Utilities
+click>=8.1.7
+tqdm>=4.66.1
+pathlib2>=2.3.7
+pyyaml>=6.0.1
+
+# Data analysis
+pandas>=2.0.0
+matplotlib>=3.5.0
+seaborn>=0.12.0
+openpyxl>=3.0.0
+
+# Testing
+pytest>=8.1.1
+pytest-mock>=3.12.0
+
+# Development
+black>=24.3.0
+flake8>=7.0.0
+mypy>=1.9.0

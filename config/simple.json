@@ -1,0 +1,25 @@
+{
+  "_comment": "Simple configuration for basic file organization",
+  "api": {
+    "anthropic_api_key": "${ANTHROPIC_API_KEY}",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 10,
+    "max_tokens": 2000
+  },
+  "source": {
+    "type": "local",
+    "directory": "./input_files"
+  },
+  "processing": {
+    "batch_size": 10,
+    "file_types": [".jpg", ".jpeg", ".png", ".pdf", ".docx", ".txt"]
+  },
+  "organization": {
+    "mode": "copy",
+    "base_directory": "./organized_files",
+    "use_default_rules": true
+  },
+  "logging": {
+    "level": "INFO"
+  }
+}

@@ -1,0 +1,129 @@
+<context>
+# Overview
+This project aims to organize an unstructured Dropbox folder containing various file formats, primarily images of documents. Using Claude 3.7 Sonnet AI, the system will analyze each file to extract metadata and automatically organize them into logical folders based on that metadata.
+
+# Core Features
+## File Analysis with Claude AI
+- Iterate through all files in the Dropbox folder
+- Process various formats (images, PDFs, documents)
+- Extract metadata using Claude 3.7 Sonnet API
+- Identify document type, content, date, subject matter
+
+## Smart Organization
+- Create folder structure based on AI-extracted metadata
+- Move/copy files to appropriate folders
+- Handle naming conflicts and duplicates
+- Generate organization report
+
+## Batch Processing
+- Process files in batches to manage API rate limits
+- Progress tracking and resumable operations
+- Error handling and retry mechanisms
+- Log processing results
+
+# User Experience
+## User Personas
+- Document archiver: Someone with years of unorganized scanned documents
+- Professional organizer: Needs to systematically categorize client files
+- Personal user: Wants to organize family photos and documents
+
+## Key User Flows
+1. Connect Dropbox account or specify local folder
+2. Configure organization preferences (folder structure, naming conventions)
+3. Run analysis with progress monitoring
+4. Review and approve organization plan
+5. Execute file organization
+6. Generate summary report
+</context>
+<PRD>
+# Technical Architecture
+## System Components
+- Dropbox API integration or local file system access
+- Claude 3.7 Sonnet API client
+- File processing engine (handles multiple formats)
+- Metadata extraction and storage
+- Organization logic engine
+- File manipulation service
+
+## Data Models
+- File entity (path, type, size, analysis results)
+- Metadata entity (extracted information, categories, dates)
+- Organization rules (folder mapping, naming patterns)
+- Processing queue and status tracking
+
+## APIs and Integrations
+- Anthropic Claude API for document analysis
+- Dropbox API for file access (optional)
+- Image processing libraries for document enhancement
+- PDF processing for text extraction
+
+## Infrastructure Requirements
+- Python runtime environment
+- API keys (Claude, Dropbox if used)
+- Local storage for processing cache
+- Logging and monitoring
+
+# Development Roadmap
+## MVP Requirements
+- Basic file iteration from local folder
+- Claude API integration for single file analysis
+- Simple metadata extraction (type, subject)
+- Basic folder organization (by type)
+- Console-based progress tracking
+
+## Phase 2 Enhancements
+- Dropbox integration
+- Batch processing with queue management
+- Advanced metadata extraction (dates, entities, topics)
+- Customizable organization rules
+- GUI or web interface
+
+## Phase 3 Features
+- Machine learning for improved categorization
+- Duplicate detection and handling
+- Multi-language support
+- Integration with other cloud storage
+- Automated scheduling
+
+# Logical Dependency Chain
+1. File system access and iteration
+2. Claude API connection and basic usage
+3. Single file analysis capability
+4. Metadata storage structure
+5. Basic organization logic
+6. File movement operations
+7. Progress tracking and logging
+8. Batch processing implementation
+9. Error handling and recovery
+10. Advanced features and optimizations
+
+# Risks and Mitigations
+## Technical Challenges
+- API rate limiting: Implement batch processing and queuing
+- Large file handling: Stream processing for memory efficiency
+- Format compatibility: Use multiple libraries for robustness
+
+## MVP Scope
+- Start with local files only, add Dropbox later
+- Basic metadata first, enhance progressively
+- Simple folder structure initially
+
+## Resource Constraints
+- API costs: Implement usage tracking and limits
+- Processing time: Add progress indicators and resumability
+- Storage space: Option to copy or move files
+
+# Appendix
+## Technical Specifications
+- Python 3.9+ recommended
+- Key libraries: anthropic, pillow, PyPDF2, python-docx
+- Configuration via environment variables
+- JSON for metadata storage
+- SQLite for processing queue (optional)
+
+## File Type Support
+- Images: JPG, PNG, TIFF, BMP
+- Documents: PDF, DOCX, TXT
+- Scanned documents via OCR
+- Future: Videos, audio transcripts
+</PRD>

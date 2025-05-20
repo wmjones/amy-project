@@ -1,0 +1,130 @@
+{
+  "_comment": "Example configuration file for File Organizer",
+  "api": {
+    "_comment": "API configuration for Claude/Anthropic",
+    "anthropic_api_key": "YOUR_API_KEY_HERE",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 15,
+    "max_tokens": 2500,
+    "timeout": 45,
+    "max_retries": 3,
+    "initial_backoff": 2.0
+  },
+  "dropbox": {
+    "_comment": "Dropbox integration settings",
+    "app_key": "YOUR_DROPBOX_APP_KEY",
+    "app_secret": "YOUR_DROPBOX_APP_SECRET",
+    "access_token": null,
+    "source_folder": "/file-organizer-uploads",
+    "download_batch_size": 20
+  },
+  "processing": {
+    "_comment": "File processing settings",
+    "batch_size": 15,
+    "max_workers": 6,
+    "file_types": [
+      ".jpg", ".jpeg", ".png", ".tiff", ".bmp",
+      ".pdf", ".docx", ".doc", ".txt", ".csv"
+    ],
+    "max_file_size": 104857600,
+    "queue_priority": "size",
+    "enable_ocr": true,
+    "ocr_languages": ["eng", "fra", "deu"]
+  },
+  "organization": {
+    "_comment": "File organization rules and settings",
+    "mode": "copy",
+    "base_directory": "./organized_files",
+    "conflict_resolution": "rename",
+    "preserve_structure": false,
+    "rules": [
+      {
+        "name": "Invoices by client and year",
+        "priority": 1,
+        "conditions": {
+          "document_type": "invoice",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Financial/Invoices/{entities.organizations[0]}/{dates.document_date|%Y}/{dates.document_date|%m}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Receipts by store and month",
+        "priority": 2,
+        "conditions": {
+          "document_type": "receipt",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Financial/Receipts/{entities.organizations[0]}/{dates.document_date|%Y-%m}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Contracts by party",
+        "priority": 3,
+        "conditions": {
+          "document_type": "contract",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Legal/Contracts/{entities.organizations[0]}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Photos by date taken",
+        "priority": 4,
+        "conditions": {
+          "document_type": "photo",
+          "dates.taken_date": {"$exists": true}
+        },
+        "path_template": "Photos/{dates.taken_date|%Y}/{dates.taken_date|%Y-%m-%d}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Medical documents by type",
+        "priority": 5,
+        "conditions": {
+          "document_type": {"$in": ["medical_report", "prescription", "lab_result"]}
+        },
+        "path_template": "Medical/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "High priority documents",
+        "priority": 10,
+        "conditions": {
+          "priority": "high",
+          "tags": {"$contains": "urgent"}
+        },
+        "path_template": "Priority/High/{document_type}/{filename}",
+        "enabled": true
+      }
+    ]
+  },
+  "metadata": {
+    "_comment": "Metadata storage configuration",
+    "storage_backend": "sqlite",
+    "db_path": "./data/metadata.db",
+    "json_path": "./data/metadata.json",
+    "index_fields": [
+      "document_type",
+      "dates.document_date",
+      "entities.people",
+      "entities.organizations",
+      "amounts.total",
+      "tags"
+    ]
+  },
+  "logging": {
+    "_comment": "Logging configuration",
+    "level": "INFO",
+    "file": "./logs/file_organizer.log",
+    "max_size": 10485760,
+    "backup_count": 5,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  },
+  "ui": {
+    "_comment": "User interface settings",
+    "show_progress": true,
+    "update_interval": 2,
+    "color_output": true
+  }
+}

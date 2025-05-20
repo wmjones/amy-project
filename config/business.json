@@ -1,0 +1,121 @@
+{
+  "_comment": "Configuration for business document organization",
+  "api": {
+    "anthropic_api_key": "${ANTHROPIC_API_KEY}",
+    "claude_model": "claude-3-opus-20240229",
+    "rate_limit": 15,
+    "max_tokens": 3000,
+    "timeout": 60
+  },
+  "source": {
+    "type": "local",
+    "directory": "/business/incoming"
+  },
+  "processing": {
+    "batch_size": 20,
+    "max_workers": 6,
+    "file_types": [
+      ".pdf", ".docx", ".doc", ".xlsx", ".xls",
+      ".pptx", ".ppt", ".txt", ".csv", ".jpg", ".png"
+    ],
+    "max_file_size": 52428800,
+    "enable_ocr": true,
+    "ocr_languages": ["eng"]
+  },
+  "organization": {
+    "mode": "move",
+    "base_directory": "/business/organized",
+    "conflict_resolution": "rename",
+    "use_default_rules": false,
+    "rules": [
+      {
+        "name": "Invoices by client and year",
+        "priority": 1,
+        "conditions": {
+          "document_type": "invoice",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Financial/Invoices/{entities.organizations[0]}/{dates.document_date|%Y}/{dates.document_date|%m}-{dates.document_date|%B}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Contracts by party and year",
+        "priority": 2,
+        "conditions": {
+          "document_type": "contract",
+          "entities.organizations": {"$exists": true}
+        },
+        "path_template": "Legal/Contracts/{entities.organizations[0]}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Financial reports",
+        "priority": 3,
+        "conditions": {
+          "document_type": "report",
+          "categories": {"$contains": "financial"}
+        },
+        "path_template": "Financial/Reports/{dates.document_date|%Y}/{dates.document_date|%m}-{dates.document_date|%B}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Meeting minutes",
+        "priority": 4,
+        "conditions": {
+          "document_type": "meeting_minutes"
+        },
+        "path_template": "Meetings/{dates.document_date|%Y}/{dates.document_date|%m}-{dates.document_date|%B}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "HR documents",
+        "priority": 5,
+        "conditions": {
+          "categories": {"$contains": "hr"},
+          "entities.people": {"$exists": true}
+        },
+        "path_template": "HR/{entities.people[0]}/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "Project documents",
+        "priority": 6,
+        "conditions": {
+          "tags": {"$contains": "project"},
+          "custom": "metadata.project_id is not None"
+        },
+        "path_template": "Projects/{metadata.project_id}/{document_type}/{filename}",
+        "enabled": true
+      },
+      {
+        "name": "General business documents",
+        "priority": 100,
+        "conditions": {
+          "categories": {"$contains": "business"}
+        },
+        "path_template": "General/{document_type}/{dates.document_date|%Y}/{filename}",
+        "enabled": true
+      }
+    ],
+    "default_folder": "Unsorted/Business"
+  },
+  "metadata": {
+    "storage_backend": "sqlite",
+    "db_path": "/business/metadata/business.db",
+    "index_fields": [
+      "document_type",
+      "dates.document_date",
+      "entities.organizations",
+      "entities.people",
+      "amounts.total",
+      "metadata.project_id"
+    ]
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "/business/logs/organizer.log",
+    "max_size": 10485760,
+    "backup_count": 10,
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}
