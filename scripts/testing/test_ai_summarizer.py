@@ -3,9 +3,11 @@
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
 from src.metadata_extraction.ai_summarizer import AISummarizer
@@ -36,17 +38,16 @@ print("Testing AI summarizer...")
 try:
     client = ClaudeClient()
     summarizer = AISummarizer(claude_client=client)
-    
+
     result = summarizer.summarize_document(
-        file_path=Path("test.jpg"),
-        ocr_text=test_text,
-        ocr_confidence=0.8
+        file_path=Path("test.jpg"), ocr_text=test_text, ocr_confidence=0.8
     )
-    
+
     print(f"Success! Summary: {result.summary}")
     print(f"Category: {result.category}")
-    
+
 except Exception as e:
     print(f"Error: {e}")
     import traceback
+
     traceback.print_exc()

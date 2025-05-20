@@ -6,23 +6,23 @@ from .performance_optimizer import (
     OptimizedPipeline,
     PerformanceMetrics,
     ResourceMonitor,
-    DocumentBatcher
+    DocumentBatcher,
 )
 
 from .monitoring_dashboard import (
     MonitoringDashboard,
     MetricsCollector,
     LiveMetrics,
-    ConsoleDashboard
+    ConsoleDashboard,
 )
 
 __all__ = [
-    'OptimizedPipeline',
-    'PerformanceMetrics',
-    'ResourceMonitor',
-    'DocumentBatcher',
-    'MonitoringDashboard',
-    'MetricsCollector',
-    'LiveMetrics',
-    'ConsoleDashboard'
+    "OptimizedPipeline",
+    "PerformanceMetrics",
+    "ResourceMonitor",
+    "DocumentBatcher",
+    "MonitoringDashboard",
+    "MetricsCollector",
+    "LiveMetrics",
+    "ConsoleDashboard",
 ]

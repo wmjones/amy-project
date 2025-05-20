@@ -19,18 +19,18 @@ def test_summarizer():
     # Initialize clients
     claude_client = ClaudeClient()
     summarizer = AISummarizer(claude_client)
-    
+
     # Test with a simple text
     test_path = Path("test_document.jpg")
     test_ocr_text = "January 9, 1964"
-    
+
     try:
         # Create custom prompt to ensure JSON response
         custom_prompt = """
         Analyze this OCR text and return ONLY a JSON object:
-        
+
         OCR Text: January 9, 1964
-        
+
         Return JSON with this structure:
         {
             "summary": "Brief summary",
@@ -47,20 +47,20 @@ def test_summarizer():
             "quality_indicators": {"text_clarity": 0.9, "historical_value": 0.5}
         }
         """
-        
+
         # Test the analysis
         result = summarizer.claude_client.analyze_document(
             content=test_ocr_text,
             file_name="test_document.jpg",
             file_type=".jpg",
             custom_prompt=custom_prompt,
-            system_prompt="Return only valid JSON. No explanation or text before or after."
+            system_prompt="Return only valid JSON. No explanation or text before or after.",
         )
-        
+
         print("Raw Claude response:")
         print(result.content)
         print("\nResponse type:", type(result.content))
-        
+
         # Try parsing
         try:
             parsed = json.loads(result.content)
@@ -68,10 +68,11 @@ def test_summarizer():
             print(json.dumps(parsed, indent=2))
         except json.JSONDecodeError as e:
             print(f"\nJSON parsing error: {e}")
-            
+
     except Exception as e:
         print(f"Error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

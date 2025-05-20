@@ -85,7 +85,7 @@ This document provides a comprehensive implementation plan for deploying an enha
 1. **File Ingestion Module**
    ```python
    from src.file_access.file_ingestion import FileIngestionEngine
-   
+
    engine = FileIngestionEngine(
        queue_size=1000,
        validation_enabled=True,
@@ -96,7 +96,7 @@ This document provides a comprehensive implementation plan for deploying an enha
 2. **OCR Processing Module**
    ```python
    from src.file_access.ocr_processor import OCRProcessor
-   
+
    processor = OCRProcessor(
        primary_engine="tesseract",
        fallback_engine="google_vision",
@@ -107,7 +107,7 @@ This document provides a comprehensive implementation plan for deploying an enha
 3. **AI Summarization Module**
    ```python
    from src.metadata_extraction.ai_summarizer import AISummarizer
-   
+
    summarizer = AISummarizer(
        claude_client=claude_client,
        syracuse_specific=True
@@ -119,7 +119,7 @@ This document provides a comprehensive implementation plan for deploying an enha
 1. **Metadata Integration**
    ```python
    from src.integration.metadata_integration import MetadataIntegrationBridge
-   
+
    bridge = MetadataIntegrationBridge(
        metadata_storage=storage,
        organization_engine=engine,
@@ -130,7 +130,7 @@ This document provides a comprehensive implementation plan for deploying an enha
 2. **Performance Optimization**
    ```python
    from src.optimization.performance_optimizer import OptimizedPipeline
-   
+
    pipeline = OptimizedPipeline(
        max_workers=8,
        use_multiprocessing=True,
@@ -166,7 +166,7 @@ class OCRConfiguration:
             'dpi': 300,
             'timeout': 120
         }
-        
+
         self.google_vision_config = {
             'language_hints': ['en'],
             'features': ['TEXT_DETECTION', 'DOCUMENT_TEXT_DETECTION'],
@@ -202,7 +202,7 @@ def process_batch(files: List[Path], config: Dict) -> List[Result]:
         # OCR processing
         ocr_futures = [executor.submit(process_ocr, f) for f in files]
         ocr_results = [f.result() for f in ocr_futures]
-        
+
         # AI summarization with rate limiting
         ai_results = []
         for ocr_result in ocr_results:
@@ -211,7 +211,7 @@ def process_batch(files: List[Path], config: Dict) -> List[Result]:
                 ai_results.append(ai_result)
             else:
                 time.sleep(rate_limiter.wait_time())
-                
+
     return combine_results(ocr_results, ai_results)
 ```
 
@@ -226,13 +226,13 @@ def process_batch(files: List[Path], config: Dict) -> List[Result]:
 - **Annual cost**: $14.40 (if processing similar volumes monthly)
 
 #### Anthropic Claude API
-- **Pricing**: 
+- **Pricing**:
   - Input: $3 per million tokens
   - Output: $15 per million tokens
 - **Estimated usage**:
   - Input: 400 docs × 2,000 tokens = 800,000 tokens
   - Output: 400 docs × 500 tokens = 200,000 tokens
-- **Monthly cost**: 
+- **Monthly cost**:
   - Input: $2.40
   - Output: $3.00
   - Total: $5.40
@@ -277,15 +277,15 @@ gantt
     section Phase 1
     Environment Setup           :a1, 2025-06-01, 7d
     Configuration Management    :a2, after a1, 7d
-    
+
     section Phase 2
     File Ingestion Module      :b1, after a2, 7d
     OCR Processing Module      :b2, after b1, 7d
-    
+
     section Phase 3
     AI Summarization Module    :c1, after b2, 7d
     Metadata Integration       :c2, after c1, 7d
-    
+
     section Phase 4
     Performance Optimization   :d1, after c2, 7d
     Testing & Deployment      :d2, after d1, 7d
@@ -329,7 +329,7 @@ gantt
 1. **Dropbox Integration**
    ```python
    from dropbox import Dropbox
-   
+
    dbx = Dropbox(access_token)
    files = dbx.files_list_folder('/Hansman Syracuse photo docs July 2015')
    ```
@@ -337,7 +337,7 @@ gantt
 2. **Claude API Integration**
    ```python
    from anthropic import Anthropic
-   
+
    client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
    response = client.messages.create(
        model="claude-3-7-sonnet-20250219",

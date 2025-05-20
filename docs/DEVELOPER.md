@@ -89,7 +89,7 @@ class ClaudeClient:
     def __init__(self, api_key: str, model: str = "claude-3-opus"):
         self.client = anthropic.Anthropic(api_key=api_key)
         self.model = model
-    
+
     def analyze_document(self, content: str, **kwargs) -> AnalysisResult:
         # Document analysis logic
         pass
@@ -144,7 +144,7 @@ class FileAccessor(ABC):
     @abstractmethod
     def list_files(self, path: str) -> List[FileInfo]:
         pass
-    
+
     @abstractmethod
     def read_file(self, path: str) -> bytes:
         pass
@@ -170,14 +170,14 @@ class S3Accessor(FileAccessor):
     def __init__(self, bucket_name: str, **kwargs):
         self.s3_client = boto3.client('s3', **kwargs)
         self.bucket_name = bucket_name
-    
+
     def list_files(self, prefix: str = "") -> List[FileInfo]:
         response = self.s3_client.list_objects_v2(
             Bucket=self.bucket_name,
             Prefix=prefix
         )
         return [self._convert_to_file_info(obj) for obj in response.get('Contents', [])]
-    
+
     def read_file(self, key: str) -> bytes:
         response = self.s3_client.get_object(
             Bucket=self.bucket_name,
@@ -198,7 +198,7 @@ class CustomRule(OrganizationRule):
         if metadata.custom_metadata.get('project_id'):
             return True
         return False
-    
+
     def get_path(self, metadata: DocumentMetadata) -> str:
         project_id = metadata.custom_metadata['project_id']
         return f"Projects/{project_id}/{metadata.document_type}"
@@ -216,16 +216,16 @@ import cv2
 class VideoProcessor(BaseProcessor):
     def process(self, file_path: str) -> Dict[str, Any]:
         video = cv2.VideoCapture(file_path)
-        
+
         # Extract video metadata
         fps = video.get(cv2.CAP_PROP_FPS)
         frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
         duration = frame_count / fps
-        
+
         # Extract thumbnail
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_count // 2)
         ret, frame = video.read()
-        
+
         return {
             'duration': duration,
             'fps': fps,
@@ -243,12 +243,12 @@ Add domain-specific metadata extraction:
 class MedicalDocumentExtractor(MetadataExtractor):
     def extract_metadata(self, content: str, file_info: Dict) -> DocumentMetadata:
         metadata = super().extract_metadata(content, file_info)
-        
+
         # Extract medical-specific information
         metadata.custom_metadata['patient_id'] = self._extract_patient_id(content)
         metadata.custom_metadata['diagnosis_codes'] = self._extract_diagnosis_codes(content)
         metadata.custom_metadata['treatment_date'] = self._extract_treatment_date(content)
-        
+
         return metadata
 ```
 
@@ -332,15 +332,15 @@ class TestMetadataExtractor:
     @pytest.fixture
     def extractor(self, mock_claude_client):
         return MetadataExtractor(mock_claude_client)
-    
+
     def test_extract_metadata_invoice(self, extractor):
         content = "Invoice #12345..."
         metadata = extractor.extract_metadata(
-            content, 
+            content,
             file_path="/test/invoice.pdf",
             file_type="pdf"
         )
-        
+
         assert metadata.document_type == "invoice"
         assert "financial" in metadata.categories
 ```
@@ -435,16 +435,16 @@ Use Google-style docstrings:
 ```python
 def analyze_document(self, content: str, options: Dict[str, Any]) -> AnalysisResult:
     """Analyze document content using Claude AI.
-    
+
     Args:
         content: The document content to analyze
         options: Additional options for analysis
             - custom_prompt: Override default prompt
             - max_tokens: Maximum tokens for response
-    
+
     Returns:
         AnalysisResult containing extracted metadata
-    
+
     Raises:
         APIError: If Claude API request fails
         ValidationError: If content is invalid

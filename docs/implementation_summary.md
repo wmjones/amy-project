@@ -51,7 +51,7 @@ The enhanced file processing pipeline for the Hansman Syracuse collection has be
 
 ### Core Components
 ```
-Input Sources → File Ingestion → OCR Processing → AI Summarization → 
+Input Sources → File Ingestion → OCR Processing → AI Summarization →
 Metadata Integration → Organization Engine → Output Systems
 ```
 

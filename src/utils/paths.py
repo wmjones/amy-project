@@ -1,4 +1,5 @@
 """Path constants for standardized project structure."""
+
 import os
 from pathlib import Path
 
@@ -33,6 +34,7 @@ EXAMPLES_DIR = PROJECT_ROOT / "examples"
 DOCS_DIR = PROJECT_ROOT / "docs"
 TESTS_DIR = PROJECT_ROOT / "tests"
 
+
 # Ensure directories exist
 def ensure_directories():
     """Create all necessary directories if they don't exist."""
@@ -46,9 +48,10 @@ def ensure_directories():
         HANSMAN_PROCESSED,
         HANSMAN_REPORTS,
     ]
-    
+
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
+
 
 # Call this function when the module is imported
 ensure_directories()

@@ -50,7 +50,7 @@ app.run(
 
 **Parameters:**
 - `source_override`: Override source directory
-- `target_override`: Override target directory  
+- `target_override`: Override target directory
 - `dry_run_override`: Override dry-run mode
 
 **Returns:** `bool` - Success status

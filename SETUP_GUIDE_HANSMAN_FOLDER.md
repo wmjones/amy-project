@@ -38,43 +38,43 @@ load_dotenv()
 
 def process_hansman_folder():
     """Process all files in the Hansman Syracuse folder."""
-    
+
     # Configuration
     DROPBOX_FOLDER = "/Hansman Syracuse photo docs July 2015"
     LOCAL_OUTPUT = Path("./hansman_processed")
     BATCH_SIZE = 10
-    
+
     # Create output directories
     LOCAL_OUTPUT.mkdir(exist_ok=True)
     (LOCAL_OUTPUT / "downloads").mkdir(exist_ok=True)
     (LOCAL_OUTPUT / "organized").mkdir(exist_ok=True)
     (LOCAL_OUTPUT / "reports").mkdir(exist_ok=True)
-    
+
     # Initialize components
     config = ConfigManager()
-    
+
     # Dropbox accessor
     dropbox_accessor = DropboxAccessor(
         app_key=os.getenv('DROPBOX_APP_KEY'),
         app_secret=os.getenv('DROPBOX_APP_SECRET'),
         access_token=os.getenv('DROPBOX_ACCESS_TOKEN')
     )
-    
+
     # Claude client
     claude_client = ClaudeClient(
         api_key=os.getenv('ANTHROPIC_API_KEY'),
         model=config.get('api.claude_model', 'claude-3-7-sonnet-20250219')
     )
-    
+
     # Metadata extractor
     metadata_extractor = MetadataExtractor(claude_client)
-    
+
     # Organization engine
     org_engine = OrganizationEngine(config)
-    
+
     # Report generator
     report_generator = ReportGenerator()
-    
+
     # Batch processor
     batch_processor = BatchProcessor(
         config=config,
@@ -82,27 +82,27 @@ def process_hansman_folder():
         metadata_extractor=metadata_extractor,
         organization_engine=org_engine
     )
-    
+
     print(f"Starting processing of {DROPBOX_FOLDER}")
     print(f"Output directory: {LOCAL_OUTPUT}")
     print("-" * 50)
-    
+
     try:
         # List all files in the folder
         print("Listing files...")
         files = dropbox_accessor.list_files(DROPBOX_FOLDER, recursive=True)
         print(f"Found {len(files)} files")
-        
+
         # Filter for processable files
         processable_extensions = ['.jpg', '.jpeg', '.png', '.pdf', '.docx', '.txt']
         files_to_process = [f for f in files if f.extension.lower() in processable_extensions]
         print(f"Processing {len(files_to_process)} supported files")
-        
+
         # Download files in batches
         for i in range(0, len(files_to_process), BATCH_SIZE):
             batch = files_to_process[i:i + BATCH_SIZE]
             print(f"\nProcessing batch {i//BATCH_SIZE + 1}/{(len(files_to_process) + BATCH_SIZE - 1)//BATCH_SIZE}")
-            
+
             # Download files
             download_paths = []
             for file in batch:
@@ -113,26 +113,26 @@ def process_hansman_folder():
                     download_paths.append(local_path)
                 except Exception as e:
                     print(f"  Error downloading {file.name}: {e}")
-            
+
             # Process downloaded files
             if download_paths:
                 results = batch_processor.process_files(download_paths)
-                
+
                 # Organize files based on metadata
                 for result in results:
                     if result.get('success'):
                         metadata = result.get('metadata', {})
                         file_path = result.get('file_path')
-                        
+
                         # Determine organization path
                         org_path = org_engine.get_organization_path(metadata, Path(file_path).name)
                         dest_path = LOCAL_OUTPUT / "organized" / org_path
-                        
+
                         # Create directory and move file
                         dest_path.parent.mkdir(parents=True, exist_ok=True)
                         Path(file_path).rename(dest_path)
                         print(f"  Organized: {Path(file_path).name} -> {org_path}")
-        
+
         # Generate reports
         print("\nGenerating reports...")
         report_data = {
@@ -141,21 +141,21 @@ def process_hansman_folder():
             'timestamp': datetime.now().isoformat(),
             'source_folder': DROPBOX_FOLDER
         }
-        
+
         # Save reports
         report_generator.generate_summary_report(
             report_data,
             LOCAL_OUTPUT / "reports" / "summary.json"
         )
-        
+
         report_generator.generate_html_report(
             report_data,
             LOCAL_OUTPUT / "reports" / "summary.html"
         )
-        
+
         print(f"\nProcessing complete!")
         print(f"Results saved to: {LOCAL_OUTPUT}")
-        
+
     except Exception as e:
         print(f"Error: {e}")
         raise
@@ -185,27 +185,27 @@ load_dotenv()
 
 def process_simple():
     """Simple processing of Hansman files."""
-    
+
     # Configuration
     DROPBOX_FOLDER = "/Hansman Syracuse photo docs July 2015"
     OUTPUT_DIR = Path("./hansman_results")
-    
+
     # Create output directory
     OUTPUT_DIR.mkdir(exist_ok=True)
-    
+
     # Connect to Dropbox
     dbx = dropbox.Dropbox(
         app_key=os.getenv('DROPBOX_APP_KEY'),
         app_secret=os.getenv('DROPBOX_APP_SECRET'),
         oauth2_access_token=os.getenv('DROPBOX_ACCESS_TOKEN')
     )
-    
+
     print(f"Processing files from: {DROPBOX_FOLDER}")
-    
+
     # List files
     result = dbx.files_list_folder(DROPBOX_FOLDER)
     files = []
-    
+
     while True:
         for entry in result.entries:
             if isinstance(entry, dropbox.files.FileMetadata):
@@ -215,18 +215,18 @@ def process_simple():
                     'size': entry.size,
                     'modified': str(entry.server_modified)
                 })
-        
+
         if not result.has_more:
             break
-            
+
         result = dbx.files_list_folder_continue(result.cursor)
-    
+
     print(f"Found {len(files)} files")
-    
+
     # Save file list
     with open(OUTPUT_DIR / 'file_list.json', 'w') as f:
         json.dump(files, f, indent=2)
-    
+
     # Create summary
     summary = {
         'source_folder': DROPBOX_FOLDER,
@@ -234,16 +234,16 @@ def process_simple():
         'processed_date': datetime.now().isoformat(),
         'file_types': {}
     }
-    
+
     # Count file types
     for file in files:
         ext = Path(file['name']).suffix.lower()
         summary['file_types'][ext] = summary['file_types'].get(ext, 0) + 1
-    
+
     # Save summary
     with open(OUTPUT_DIR / 'summary.json', 'w') as f:
         json.dump(summary, f, indent=2)
-    
+
     print(f"\nResults saved to: {OUTPUT_DIR}")
     print(f"- File list: {OUTPUT_DIR}/file_list.json")
     print(f"- Summary: {OUTPUT_DIR}/summary.json")
@@ -261,7 +261,7 @@ Update your `.env` file to ensure all necessary credentials are present:
 ```env
 # Required for Dropbox
 DROPBOX_APP_KEY=your_app_key
-DROPBOX_APP_SECRET=your_app_secret  
+DROPBOX_APP_SECRET=your_app_secret
 DROPBOX_ACCESS_TOKEN=your_access_token
 
 # Required for Claude AI processing

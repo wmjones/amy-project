@@ -12,7 +12,7 @@ Your access token is working (connected to wyattjo116@gmail.com) but your app ne
    - ✅ `files.metadata.read` - To list and search files
    - ✅ `files.content.read` - To download files
    - ✅ `sharing.read` - To access shared folders
-   
+
    Click **Submit** after selecting these.
 
 3. **Generate NEW Access Token** (Settings tab)

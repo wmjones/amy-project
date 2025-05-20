@@ -202,41 +202,39 @@ class ClaudeClient:
 
     def _encode_image(self, image_path: Union[str, Path]) -> Dict[str, Any]:
         """Encode an image file as base64 for the API.
-        
+
         Args:
             image_path: Path to the image file
-            
+
         Returns:
             Dictionary with image data for the API
         """
         path = Path(image_path)
-        
+
         # Determine media type based on file extension
         extension = path.suffix.lower()
         media_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp'
-        }
-        
-        media_type = media_types.get(extension, 'image/jpeg')
-        
-        # Read and encode the image
-        with open(path, 'rb') as f:
-            image_data = base64.b64encode(f.read()).decode('utf-8')
-        
-        return {
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": media_type,
-                "data": image_data
-            }
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
         }
 
-    def _make_api_call(self, prompt: str, system: str, image_path: Optional[Union[str, Path]] = None) -> Any:
+        media_type = media_types.get(extension, "image/jpeg")
+
+        # Read and encode the image
+        with open(path, "rb") as f:
+            image_data = base64.b64encode(f.read()).decode("utf-8")
+
+        return {
+            "type": "image",
+            "source": {"type": "base64", "media_type": media_type, "data": image_data},
+        }
+
+    def _make_api_call(
+        self, prompt: str, system: str, image_path: Optional[Union[str, Path]] = None
+    ) -> Any:
         """Make the actual API call to Claude.
 
         Args:
@@ -249,7 +247,7 @@ class ClaudeClient:
         """
         # Build the content array
         content = []
-        
+
         # Add image if provided
         if image_path:
             try:
@@ -258,10 +256,10 @@ class ClaudeClient:
             except Exception as e:
                 logger.warning(f"Failed to encode image {image_path}: {e}")
                 # Continue without the image
-        
+
         # Add text content
         content.append({"type": "text", "text": prompt})
-        
+
         return self.client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,

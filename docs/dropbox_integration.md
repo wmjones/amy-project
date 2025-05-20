@@ -98,7 +98,7 @@ local_path = accessor.download_file("/remote/file.pdf", Path("local/file.pdf"))
 
 # Download batch
 results = accessor.download_batch(
-    ["/file1.pdf", "/file2.jpg"], 
+    ["/file1.pdf", "/file2.jpg"],
     Path("downloads/")
 )
 ```
@@ -239,7 +239,7 @@ try:
     results = organizer.organize_dropbox_files()
 except Exception as e:
     result, error = error_handler.handle_error(
-        e, 
+        e,
         "dropbox_organization",
         retry_func=lambda: organizer.organize_dropbox_files()
     )
@@ -332,7 +332,7 @@ if input("Proceed? (y/n): ").lower() == 'y':
     results = organizer.organize_dropbox_files(
         progress_tracker=ProgressTracker()
     )
-    
+
     # 5. Generate report
     report_gen = ReportGenerator()
     report = report_gen.generate_summary_report(
@@ -352,10 +352,10 @@ The Dropbox integration can be combined with other cloud services:
 def sync_to_drive(dropbox_path, drive_service):
     # Download from Dropbox
     temp_file = accessor.download_file(dropbox_path, Path("/tmp/temp"))
-    
+
     # Upload to Google Drive
     drive_service.upload(temp_file, folder_id="...")
-    
+
     # Clean up
     temp_file.unlink()
 ```

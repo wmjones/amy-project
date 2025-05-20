@@ -83,16 +83,16 @@ Before installing, ensure you have:
    ```
 
 2. **Set up your API key**
-   
+
    Option A: Environment variable (recommended)
    ```bash
    # Linux/macOS
    export ANTHROPIC_API_KEY=your_api_key_here
-   
+
    # Windows
    set ANTHROPIC_API_KEY=your_api_key_here
    ```
-   
+
    Option B: Add to config.json
    ```json
    {
@@ -103,7 +103,7 @@ Before installing, ensure you have:
    ```
 
 3. **Configure Dropbox (optional)**
-   
+
    If using Dropbox integration:
    - Create a Dropbox app at https://www.dropbox.com/developers
    - Add app credentials to config.json
@@ -162,7 +162,7 @@ brew install poppler
    ```bash
    pip show file-organizer
    ```
-   
+
 3. **Test the installation**
    ```bash
    python -m src.app --help
@@ -234,7 +234,7 @@ pip install --upgrade .
    ```bash
    # Linux/macOS
    rm -rf venv/
-   
+
    # Windows
    rmdir /s venv
    ```

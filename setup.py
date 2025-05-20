@@ -3,13 +3,15 @@ import os
 
 # Read the contents of README file
 this_directory = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+with open(os.path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
+
 
 # Read requirements from requirements.txt
 def read_requirements(filename):
     with open(os.path.join(this_directory, filename)) as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
 
 setup(
     name="file-organizer-ai",
@@ -42,7 +44,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.9",
-    install_requires=read_requirements('requirements.txt'),
+    install_requires=read_requirements("requirements.txt"),
     extras_require={
         "dev": [
             "pytest>=8.1.1",
@@ -65,7 +67,7 @@ setup(
             "opencv-python>=4.9.0",
             "pdf2image>=1.16.3",
             "dropbox>=11.36.2",
-        ]
+        ],
     },
     entry_points={
         "console_scripts": [

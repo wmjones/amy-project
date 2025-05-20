@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DocumentSummary:
     """Enhanced summary for historical documents in the Hansman Syracuse collection."""
+
     file_path: str
     ocr_text: str
     summary: str
@@ -43,7 +44,7 @@ class DocumentSummary:
 
 class AISummarizer:
     """AI-driven summarization and classification for historical documents."""
-    
+
     HANSMAN_SPECIFIC_PROMPT = """You are analyzing a historical document from the Hansman Syracuse photo collection from July 2015. This collection contains:
 - Historical photographs of Syracuse, NY
 - Documents related to Syracuse history
@@ -51,7 +52,7 @@ class AISummarizer:
 - Business records and correspondence
 - Architectural and landscape photos
 
-Please analyze the following text extracted via OCR and provide structured information. 
+Please analyze the following text extracted via OCR and provide structured information.
 Return ONLY a raw JSON object (no markdown formatting, no code blocks, no backticks).
 
 The JSON structure should be:
@@ -83,92 +84,100 @@ OCR Text:
 {ocr_text}
 
 If the text is unclear or minimal, make educated inferences based on any visible content and typical patterns in historical Syracuse documents."""
-    
+
     def __init__(self, claude_client: Optional[ClaudeClient] = None):
         """Initialize the AI summarizer.
-        
+
         Args:
             claude_client: Optional pre-configured Claude client
         """
         self.claude_client = claude_client or ClaudeClient()
         self.prompt_templates = PromptTemplates()
         self._init_syracuse_knowledge_base()
-        
+
     def _init_syracuse_knowledge_base(self):
         """Initialize knowledge base specific to Syracuse history."""
         self.syracuse_landmarks = [
-            "Armory Square", "Clinton Square", "Hanover Square",
-            "University Hill", "Eastwood", "Strathmore", 
-            "Salt Springs", "Onondaga Lake", "Erie Canal"
+            "Armory Square",
+            "Clinton Square",
+            "Hanover Square",
+            "University Hill",
+            "Eastwood",
+            "Strathmore",
+            "Salt Springs",
+            "Onondaga Lake",
+            "Erie Canal",
         ]
-        
+
         self.historical_periods = {
             "salt_era": (1800, 1920),
             "canal_era": (1825, 1950),
             "industrial_boom": (1870, 1930),
             "urban_renewal": (1950, 1980),
-            "modern": (1980, 2015)
+            "modern": (1980, 2015),
         }
-        
+
         self.document_patterns = {
             "photo": ["photograph", "picture", "image", "snapshot"],
             "letter": ["dear", "sincerely", "regards", "wrote"],
             "business": ["invoice", "receipt", "company", "incorporated"],
             "newspaper": ["times", "herald", "journal", "post-standard"],
-            "certificate": ["certificate", "certify", "awarded", "granted"]
+            "certificate": ["certificate", "certify", "awarded", "granted"],
         }
-    
+
     def summarize_document(
         self,
         file_path: Path,
         ocr_text: str,
         ocr_confidence: float = 0.0,
-        additional_context: Optional[Dict[str, Any]] = None
+        additional_context: Optional[Dict[str, Any]] = None,
     ) -> DocumentSummary:
         """Generate AI-driven summary and classification for a document.
-        
+
         Args:
             file_path: Path to the document
             ocr_text: Extracted text from OCR
             ocr_confidence: OCR confidence score
             additional_context: Additional metadata or context
-            
+
         Returns:
             DocumentSummary with analysis results
         """
         import time
+
         start_time = time.time()
-        
+
         try:
             # Prepare enhanced prompt with Syracuse-specific context
-            prompt = self._prepare_syracuse_prompt(ocr_text, file_path, additional_context)
-            
+            prompt = self._prepare_syracuse_prompt(
+                ocr_text, file_path, additional_context
+            )
+
             # Get analysis from Claude
             result = self.claude_client.analyze_document(
                 content=ocr_text,
                 file_name=str(file_path.name),
                 file_type=file_path.suffix,
                 custom_prompt=prompt,
-                system_prompt=self.HANSMAN_SPECIFIC_PROMPT
+                system_prompt=self.HANSMAN_SPECIFIC_PROMPT,
             )
-            
+
             # Parse the response
             summary_data = self._parse_claude_response(result)
-            
+
             # Enhance with local knowledge
             enhanced_data = self._enhance_with_local_knowledge(summary_data, ocr_text)
-            
+
             # Create document summary
             processing_time = time.time() - start_time
-            
+
             document_summary = DocumentSummary(
                 file_path=str(file_path),
                 ocr_text=ocr_text,
                 summary=enhanced_data.get("summary", ""),
                 category=enhanced_data.get("category", "unknown"),
                 confidence_score=max(
-                    enhanced_data.get("confidence_score", 0.5),
-                    ocr_confidence
+                    enhanced_data.get("confidence_score", 0.5), ocr_confidence
                 ),
                 key_entities=enhanced_data.get("key_entities", {}),
                 date_references=enhanced_data.get("date_references", []),
@@ -180,15 +189,15 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 claude_metadata={
                     "model": result.model,
                     "tokens_used": result.tokens_used,
-                    "raw_response": result.content
+                    "raw_response": result.content,
                 },
                 processing_time=processing_time,
                 suggested_folder_path=enhanced_data.get("suggested_folder_path", ""),
-                quality_indicators=enhanced_data.get("quality_indicators", {})
+                quality_indicators=enhanced_data.get("quality_indicators", {}),
             )
-            
+
             return document_summary
-            
+
         except Exception as e:
             logger.error(f"Error summarizing document {file_path}: {e}")
             return DocumentSummary(
@@ -206,47 +215,51 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 classification_tags=[],
                 claude_metadata={},
                 processing_time=time.time() - start_time,
-                error_message=str(e)
+                error_message=str(e),
             )
-    
+
     def _prepare_syracuse_prompt(
         self,
         ocr_text: str,
         file_path: Path,
-        additional_context: Optional[Dict[str, Any]] = None
+        additional_context: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Prepare a Syracuse-specific prompt for Claude."""
         context_parts = []
-        
+
         # Add filename analysis
         filename_info = self._analyze_filename(file_path.name)
         if filename_info:
             context_parts.append(f"Filename analysis: {filename_info}")
-        
+
         # Add any additional context
         if additional_context:
-            context_parts.append(f"Additional context: {json.dumps(additional_context)}")
-        
+            context_parts.append(
+                f"Additional context: {json.dumps(additional_context)}"
+            )
+
         # Check for Syracuse references
         syracuse_refs = self._find_syracuse_references(ocr_text)
         if syracuse_refs:
-            context_parts.append(f"Syracuse references found: {', '.join(syracuse_refs)}")
-        
+            context_parts.append(
+                f"Syracuse references found: {', '.join(syracuse_refs)}"
+            )
+
         prompt = self.HANSMAN_SPECIFIC_PROMPT.format(ocr_text=ocr_text)
-        
+
         if context_parts:
             prompt += f"\n\nAdditional Context:\n" + "\n".join(context_parts)
-        
+
         return prompt
-    
+
     def _parse_claude_response(self, result: AnalysisResult) -> Dict[str, Any]:
         """Parse Claude's response into structured data."""
         try:
             # Log the raw response for debugging
             logger.debug(f"Raw Claude response: {result.content[:500]}")
-            
+
             content = result.content.strip()
-            
+
             # Remove markdown code block if present
             if content.startswith("```json"):
                 content = content[7:]  # Remove ```json
@@ -258,27 +271,27 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 if content.endswith("```"):
                     content = content[:-3]  # Remove ```
                 content = content.strip()
-            
+
             # Attempt to parse as JSON
             if content.startswith("{"):
                 return json.loads(content)
-            
+
             # Extract JSON from response if embedded
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            json_match = re.search(r"\{.*\}", content, re.DOTALL)
             if json_match:
                 json_str = json_match.group(0)
                 logger.debug(f"Extracted JSON: {json_str[:200]}")
                 return json.loads(json_str)
-            
+
             # Fallback: create basic structure from text
             logger.warning(f"No JSON found in response, using fallback")
             return self._extract_structure_from_text(result.content)
-            
+
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse Claude response as JSON: {e}")
             logger.warning(f"Failed content: {result.content[:200]}")
             return self._extract_structure_from_text(result.content)
-    
+
     def _extract_structure_from_text(self, text: str) -> Dict[str, Any]:
         """Extract structured data from unstructured text response."""
         structure = {
@@ -293,19 +306,19 @@ If the text is unclear or minimal, make educated inferences based on any visible
             "historical_period": "unknown",
             "classification_tags": [],
             "suggested_folder_path": "Hansman_Syracuse/Uncategorized",
-            "quality_indicators": {"text_clarity": 0.5, "historical_value": 0.5}
+            "quality_indicators": {"text_clarity": 0.5, "historical_value": 0.5},
         }
-        
+
         # Extract dates
-        date_pattern = r'\b(18\d{2}|19\d{2}|20\d{2})\b'
+        date_pattern = r"\b(18\d{2}|19\d{2}|20\d{2})\b"
         dates = re.findall(date_pattern, text)
         structure["date_references"] = list(set(dates))
-        
+
         # Extract potential locations
         for landmark in self.syracuse_landmarks:
             if landmark.lower() in text.lower():
                 structure["location_references"].append(landmark)
-        
+
         # Guess content type
         text_lower = text.lower()
         for doc_type, patterns in self.document_patterns.items():
@@ -313,22 +326,22 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 structure["content_type"] = doc_type
                 structure["category"] = doc_type
                 break
-        
+
         return structure
-    
+
     def _enhance_with_local_knowledge(
-        self,
-        data: Dict[str, Any],
-        ocr_text: str
+        self, data: Dict[str, Any], ocr_text: str
     ) -> Dict[str, Any]:
         """Enhance Claude's analysis with local Syracuse knowledge."""
         # Add Syracuse-specific location recognition
         text_lower = ocr_text.lower()
-        
+
         for landmark in self.syracuse_landmarks:
-            if landmark.lower() in text_lower and landmark not in data.get("location_references", []):
+            if landmark.lower() in text_lower and landmark not in data.get(
+                "location_references", []
+            ):
                 data.setdefault("location_references", []).append(landmark)
-        
+
         # Determine historical period based on dates
         if data.get("date_references"):
             try:
@@ -341,118 +354,122 @@ If the text is unclear or minimal, make educated inferences based on any visible
                             break
             except ValueError:
                 pass
-        
+
         # Add specific tags for Syracuse content
         if "syracuse" in text_lower:
             data.setdefault("classification_tags", []).append("syracuse_local")
-        
+
         if "salt" in text_lower and "springs" in text_lower:
             data.setdefault("classification_tags", []).append("salt_industry")
-        
+
         if "erie canal" in text_lower:
             data.setdefault("classification_tags", []).append("erie_canal")
-        
+
         # Enhance folder path suggestion
-        if not data.get("suggested_folder_path") or data["suggested_folder_path"] == "Hansman_Syracuse/Uncategorized":
+        if (
+            not data.get("suggested_folder_path")
+            or data["suggested_folder_path"] == "Hansman_Syracuse/Uncategorized"
+        ):
             category = data.get("category", "unknown")
             period = data.get("historical_period", "unknown")
             folder_path = f"Hansman_Syracuse/{category}/{period}"
-            
+
             if data.get("location_references"):
                 folder_path += f"/{data['location_references'][0].replace(' ', '_')}"
-            
+
             data["suggested_folder_path"] = folder_path
-        
+
         return data
-    
+
     def _analyze_filename(self, filename: str) -> str:
         """Analyze filename for clues about content."""
         patterns = {
-            r'(\d{4})': 'possible year',
-            r'syracuse': 'Syracuse reference',
-            r'photo|img|pic': 'likely photograph',
-            r'doc|letter|cert': 'likely document',
-            r'(\d+)_(\d+)': 'possible date or ID'
+            r"(\d{4})": "possible year",
+            r"syracuse": "Syracuse reference",
+            r"photo|img|pic": "likely photograph",
+            r"doc|letter|cert": "likely document",
+            r"(\d+)_(\d+)": "possible date or ID",
         }
-        
+
         findings = []
         for pattern, description in patterns.items():
             if re.search(pattern, filename, re.IGNORECASE):
                 findings.append(description)
-        
+
         return ", ".join(findings) if findings else ""
-    
+
     def _find_syracuse_references(self, text: str) -> List[str]:
         """Find Syracuse-specific references in text."""
         references = []
         text_lower = text.lower()
-        
+
         # Check for landmarks
         for landmark in self.syracuse_landmarks:
             if landmark.lower() in text_lower:
                 references.append(landmark)
-        
+
         # Check for common Syracuse terms
         syracuse_terms = [
-            "syracuse", "onondaga", "salt city", "central new york",
-            "carrier dome", "syracuse university", "destiny usa"
+            "syracuse",
+            "onondaga",
+            "salt city",
+            "central new york",
+            "carrier dome",
+            "syracuse university",
+            "destiny usa",
         ]
-        
+
         for term in syracuse_terms:
             if term in text_lower:
                 references.append(term.title())
-        
+
         return list(set(references))
-    
+
     def batch_summarize(
         self,
         documents: List[Tuple[Path, str, Optional[Dict[str, Any]]]],
         batch_size: int = 5,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
     ) -> List[DocumentSummary]:
         """Batch process multiple documents for summarization.
-        
+
         Args:
             documents: List of (file_path, ocr_text, optional_context) tuples
             batch_size: Number of documents to process concurrently
             progress_callback: Optional callback for progress updates
-            
+
         Returns:
             List of DocumentSummary objects
         """
         summaries = []
         total = len(documents)
-        
+
         for i in range(0, total, batch_size):
-            batch = documents[i:i + batch_size]
+            batch = documents[i : i + batch_size]
             batch_summaries = []
-            
+
             for file_path, ocr_text, context in batch:
                 summary = self.summarize_document(
-                    file_path=file_path,
-                    ocr_text=ocr_text,
-                    additional_context=context
+                    file_path=file_path, ocr_text=ocr_text, additional_context=context
                 )
                 batch_summaries.append(summary)
-            
+
             summaries.extend(batch_summaries)
-            
+
             if progress_callback:
                 progress_callback(len(summaries), total)
-        
+
         return summaries
-    
+
     def create_collection_report(
-        self,
-        summaries: List[DocumentSummary],
-        output_path: Optional[Path] = None
+        self, summaries: List[DocumentSummary], output_path: Optional[Path] = None
     ) -> Dict[str, Any]:
         """Create a comprehensive report of the collection analysis.
-        
+
         Args:
             summaries: List of document summaries
             output_path: Optional path to save the report
-            
+
         Returns:
             Dictionary containing the analysis report
         """
@@ -467,31 +484,34 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 "confidence_distribution": {
                     "high": 0,  # > 0.8
                     "medium": 0,  # 0.5-0.8
-                    "low": 0  # < 0.5
-                }
+                    "low": 0,  # < 0.5
+                },
             },
             "key_findings": [],
             "error_count": 0,
-            "processing_time": sum(s.processing_time for s in summaries)
+            "processing_time": sum(s.processing_time for s in summaries),
         }
-        
+
         # Analyze summaries
         for summary in summaries:
             # Count by category
             category = summary.category
-            report["statistics"]["by_category"][category] = \
+            report["statistics"]["by_category"][category] = (
                 report["statistics"]["by_category"].get(category, 0) + 1
-            
+            )
+
             # Count by period
             period = summary.historical_period
-            report["statistics"]["by_period"][period] = \
+            report["statistics"]["by_period"][period] = (
                 report["statistics"]["by_period"].get(period, 0) + 1
-            
+            )
+
             # Count locations
             for location in summary.location_references:
-                report["statistics"]["locations_mentioned"][location] = \
+                report["statistics"]["locations_mentioned"][location] = (
                     report["statistics"]["locations_mentioned"].get(location, 0) + 1
-            
+                )
+
             # Confidence distribution
             if summary.confidence_score > 0.8:
                 report["statistics"]["confidence_distribution"]["high"] += 1
@@ -499,33 +519,31 @@ If the text is unclear or minimal, make educated inferences based on any visible
                 report["statistics"]["confidence_distribution"]["medium"] += 1
             else:
                 report["statistics"]["confidence_distribution"]["low"] += 1
-            
+
             # Count errors
             if summary.error_message:
                 report["error_count"] += 1
-        
+
         # Generate key findings
         if report["statistics"]["locations_mentioned"]:
             most_mentioned = max(
-                report["statistics"]["locations_mentioned"].items(),
-                key=lambda x: x[1]
+                report["statistics"]["locations_mentioned"].items(), key=lambda x: x[1]
             )
             report["key_findings"].append(
                 f"Most mentioned location: {most_mentioned[0]} ({most_mentioned[1]} times)"
             )
-        
+
         if report["statistics"]["by_period"]:
             dominant_period = max(
-                report["statistics"]["by_period"].items(),
-                key=lambda x: x[1]
+                report["statistics"]["by_period"].items(), key=lambda x: x[1]
             )
             report["key_findings"].append(
                 f"Most common historical period: {dominant_period[0]}"
             )
-        
+
         # Save report if path provided
         if output_path:
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 json.dump(report, f, indent=2)
-        
+
         return report

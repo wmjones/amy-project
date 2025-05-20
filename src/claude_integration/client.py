@@ -273,9 +273,9 @@ Format the response as structured JSON."""
                 confidence_score = 0.7
 
             # Get token usage
-            tokens_used = getattr(response.usage, 'total_tokens', None) or \
-                         getattr(response.usage, 'output_tokens', 0) + \
-                         getattr(response.usage, 'input_tokens', 0)
+            tokens_used = getattr(response.usage, "total_tokens", None) or getattr(
+                response.usage, "output_tokens", 0
+            ) + getattr(response.usage, "input_tokens", 0)
 
             return AnalysisResult(
                 content=content,
